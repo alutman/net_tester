@@ -20,13 +20,12 @@ public class UDPServer extends Server {
     }
 
     @Override
-    protected void processRequest() {
+    protected void listenForRequestAndProcess() {
 
         /* RECEIVE INCOMING REQUESTS */
         byte[] receiveData = new byte[Client.MESSAGE_SIZE];
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         try {
-            //TODO Replace with serverSocket.bind()? may be pointless
             serverSocket.receive(receivePacket);
         }
         catch(IOException e) {
@@ -49,7 +48,7 @@ public class UDPServer extends Server {
 
 
     @Override
-    protected void startListening() {
+    protected void setupServer() {
         this.serverSocket = null;
         try {
             serverSocket = new DatagramSocket(this.getPort());

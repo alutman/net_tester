@@ -16,13 +16,12 @@ public class TCPClient extends Client{
     }
 
     @Override
-    protected PingResult timeResponse() {
+    protected PingResult sendRequest() {
 
         /* SET UP CONNECTION */
-        Socket clientSocket = null;
-        //TODO find a way to use clientSocket.connect() instead of this constructor
+        Socket clientSocket = new Socket();
         try {
-            clientSocket = new Socket(this.getAddress(), this.getPort());
+            clientSocket.connect(new InetSocketAddress(this.getAddress(), this.getPort()));
             clientSocket.setSoTimeout(this.getTimeout());
         } catch (IOException e) {
             return new PingResult(ErrorType.SOCKET_ERROR, e.getClass().getCanonicalName() + ":" + e.getMessage());
@@ -36,7 +35,6 @@ public class TCPClient extends Client{
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             startTime = System.currentTimeMillis();
             outToServer.writeBytes(request + "\n");
-            //TODO Check timeout works
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -53,14 +51,12 @@ public class TCPClient extends Client{
         } catch (IOException e) {
             return new PingResult(ErrorType.RECEIVE_ERROR, "Receive failed: " + e.getMessage());
         }
-
         /* HANDLE RESULTS */
         Long delay = endTime - startTime;
         if(!response.equals(request.toUpperCase())) {
             return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 
-        //TODO Determine if the connection should be made once and constantly used or constantly created
         try {
             clientSocket.close();
         } catch(IOException ioe) {}

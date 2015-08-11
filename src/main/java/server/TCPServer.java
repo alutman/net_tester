@@ -20,7 +20,7 @@ public class TCPServer extends Server {
     }
 
 	@Override
-	protected void processRequest() {
+	protected void listenForRequestAndProcess() {
 		try {
             /* ACCEPT INCOMING CONNECTIONS */
             Socket connectionSocket = serverSocket.accept();
@@ -43,7 +43,7 @@ public class TCPServer extends Server {
 	}
 
 	@Override
-	protected void startListening() {
+	protected void setupServer() {
 		this.serverSocket = null;
 		try {
 			serverSocket = new ServerSocket(this.getPort());

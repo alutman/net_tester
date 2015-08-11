@@ -38,14 +38,14 @@ public class Program {
                 .withArgName("ADDRESS")
                 .create("c"));
         options.addOption(OptionBuilder.withLongOpt("delay")
-                .withDescription("delay between requests (Default 1)")
+                .withDescription("delay between requests (Default 1s)")
                 .hasArg()
                 .withArgName("SECONDS")
                 .create());
         options.addOption(OptionBuilder.withLongOpt("timeout")
-                .withDescription("timeout for requests (Default 10)")
+                .withDescription("timeout for requests (Default 10000ms)")
                 .hasArg()
-                .withArgName("SECONDS")
+                .withArgName("MILLISECONDS")
                 .create());
         options.addOption(OptionBuilder.withLongOpt("csv")
                 .withDescription("output in csv format")
@@ -59,10 +59,9 @@ public class Program {
             if (cmd.hasOption("help")) {
                 HelpFormatter hf = new HelpFormatter();
                 hf.printHelp("net_tester [OPTIONS]",
-                        "Measures ping between two machines over UDP and/or TCP" +
-                                "\nOne of --server or --client and at least one of --udp and --tcp are required",
+                        "Measures ping between two machines over UDP and/or TCP",
                         options,
-                        "");
+                        "Server mode only pays attention to --udp and --tcp options");
                 System.exit(0);
             }
 
@@ -81,7 +80,7 @@ public class Program {
                 close("Invalid PORT");
             }
             if(udpPort < 0 && tcpPort < 0) {
-                close("At least one protocol must be specified (--udp PORT and/or --tcp PORT");
+                close("At least one protocol must be specified (--udp PORT and/or --tcp PORT)");
             }
 
             /* GET MODE */
@@ -137,10 +136,10 @@ public class Program {
     private static int getTimeout(CommandLine cmd)  {
         if(cmd.hasOption("timeout")) {
             try {
-                return Math.max(Integer.parseInt(cmd.getOptionValue("timeout")) * 1000, 1000);
+                return Math.max(Integer.parseInt(cmd.getOptionValue("timeout")), 1);
             }
             catch(NumberFormatException nfe) {
-                System.out.println("Invalid timeout: "+cmd.getOptionValue("timeout")+". Using default "+DEFAULT_TIMEOUT/1000);
+                System.out.println("Invalid timeout: "+cmd.getOptionValue("timeout")+". Using default "+DEFAULT_TIMEOUT);
             }
 
         }
@@ -171,13 +170,11 @@ public class Program {
         Server udpServer = new UDPServer(udpPort);
         Thread udpServerThread = new Thread(udpServer);
         udpServerThread.start();
-        
     }
     private static void startTCPServer(int tcpPort) {
         Server tcpServer = new TCPServer(tcpPort);
         Thread tcpServerThread = new Thread(tcpServer);
         tcpServerThread.start();
-        
     }
     private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv) {
         Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv);

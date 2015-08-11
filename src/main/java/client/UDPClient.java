@@ -14,7 +14,7 @@ public class UDPClient extends Client {
     }
 
     @Override
-    protected PingResult timeResponse() {
+    protected PingResult sendRequest() {
 
         /* GET HOST */
         InetAddress IPAddress = null;
@@ -27,6 +27,7 @@ public class UDPClient extends Client {
         /* SET UP CONNECTION */
         DatagramSocket clientSocket = null;
         try {
+            //Client port is auto selected by the kernel
             clientSocket = new DatagramSocket();
         } catch (SocketException e) {
             return new PingResult(ErrorType.SOCKET_ERROR, e.getClass().getCanonicalName() + ":" + e.getMessage());
@@ -38,7 +39,6 @@ public class UDPClient extends Client {
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, this.getPort());
         Long startTime = System.currentTimeMillis();
         try {
-            //TODO replace with clientSocket.connect()?
             clientSocket.send(sendPacket);
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
@@ -66,8 +66,6 @@ public class UDPClient extends Client {
             return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 
-        //TODO Determine if the connection should be made once and constantly used or constantly created
-        // May have no difference with UDP
         clientSocket.close();
         return new PingResult(delay);
     }
