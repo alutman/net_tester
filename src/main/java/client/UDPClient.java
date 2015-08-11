@@ -9,20 +9,19 @@ import java.net.*;
 public class UDPClient extends Client {
 
 
-    public UDPClient(String address, int port, int timeout, Long delay) {
-        super(address, port, timeout, delay);
+    public UDPClient(String address, int port, int timeout, Long delay, boolean outputCsv) {
+        super(address, port, timeout, delay, outputCsv);
     }
 
     @Override
-    protected long timeResponse() {
+    protected PingResult timeResponse() {
 
         /* GET HOST */
         InetAddress IPAddress = null;
         try {
             IPAddress = InetAddress.getByName(this.getAddress());
         } catch (UnknownHostException e) {
-            printerr("Unknown host: "+e.getMessage());
-            return ErrorType.UNKNOWN_HOST;
+            return new PingResult(ErrorType.UNKNOWN_HOST, "Unknown host: "+e.getMessage());
         }
 
         /* SET UP CONNECTION */
@@ -30,8 +29,7 @@ public class UDPClient extends Client {
         try {
             clientSocket = new DatagramSocket();
         } catch (SocketException e) {
-            printerr(e.getClass().getCanonicalName()+":"+e.getMessage());
-            return ErrorType.SOCKET_ERROR;
+            return new PingResult(ErrorType.SOCKET_ERROR, e.getClass().getCanonicalName() + ":" + e.getMessage());
         }
 
         /* SEND PACKET */
@@ -42,9 +40,8 @@ public class UDPClient extends Client {
         try {
             //TODO replace with clientSocket.connect()?
             clientSocket.send(sendPacket);
-        } catch (IOException ioe) {
-            printerr("Send failed: " + ioe.getMessage());
-            return ErrorType.SEND_ERROR;
+        } catch (IOException e) {
+            return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
 
         /* RECEIVE RESPONSE */
@@ -58,24 +55,21 @@ public class UDPClient extends Client {
             endTime  = System.currentTimeMillis();
             response = new String(receivePacket.getData());
         } catch(SocketTimeoutException ste) {
-            printerr("Receive timeout reached: "+ste.getMessage());
-            return ErrorType.TIMEOUT;
+            return new PingResult(ErrorType.TIMEOUT, "Receive timeout reached: " + ste.getMessage());
         } catch (IOException ioe) {
-            printerr("Receive failed: " + ioe.getMessage());
-            return ErrorType.RECEIVE_ERROR;
+            return new PingResult(ErrorType.RECEIVE_ERROR, "Receive failed: " + ioe.getMessage());
         }
 
         /* HANDLE RESULTS */
         Long delay = endTime-startTime;
         if(!response.equals(request.toUpperCase())) {
-            printerr("Response ("+response+") does not match request ("+request.toUpperCase()+")");
-            return ErrorType.RESPONSE_MISMATCH;
+            return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 
         //TODO Determine if the connection should be made once and constantly used or constantly created
         // May have no difference with UDP
         clientSocket.close();
-        return delay;
+        return new PingResult(delay);
     }
 
     @Override

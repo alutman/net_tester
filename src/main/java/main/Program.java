@@ -3,13 +3,7 @@ package main;
 import client.Client;
 import client.TCPClient;
 import client.UDPClient;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
 
 import server.Server;
@@ -53,6 +47,9 @@ public class Program {
                 .hasArg()
                 .withArgName("SECONDS")
                 .create());
+        options.addOption(OptionBuilder.withLongOpt("csv")
+                .withDescription("output in csv format")
+                .create());
         options.addOption("s", "server", false, "run in server mode");
 
         CommandLineParser parser = new BasicParser();
@@ -62,15 +59,16 @@ public class Program {
             if (cmd.hasOption("help")) {
                 HelpFormatter hf = new HelpFormatter();
                 hf.printHelp("net_tester [OPTIONS]",
-                        "Net health testing tool",
+                        "Measures ping between two machines over UDP and/or TCP" +
+                                "\nOne of --server or --client and at least one of --udp and --tcp are required",
                         options,
                         "");
                 System.exit(0);
             }
 
             /* GET PROTOCOL/PORT */
-            int udpPort = 0;
-            int tcpPort = 0;
+            int udpPort = -1;
+            int tcpPort = -1;
             try {
                 if(cmd.hasOption("udp")) {
                     udpPort = Integer.parseInt(cmd.getOptionValue("udp"));
@@ -80,28 +78,36 @@ public class Program {
                 }
             }
             catch(NumberFormatException nfe) {
-                close("invalid PORT");
+                close("Invalid PORT");
             }
-            if(udpPort == 0 && tcpPort == 0) {
+            if(udpPort < 0 && tcpPort < 0) {
                 close("At least one protocol must be specified (--udp PORT and/or --tcp PORT");
             }
 
             /* GET MODE */
-            if(cmd.hasOption("client")) {
+            if(cmd.hasOption("client") && !cmd.hasOption("server")) {
                 int timeout = getTimeout(cmd);
                 Long delay = getDelay(cmd);
                 String address = cmd.getOptionValue("client");
-                System.out.println("Running client to "+address);
+                boolean asCsv = cmd.hasOption("csv");
+                if(!asCsv) {
+                    System.out.println("Running client to " + address);
+                }
                 if(udpPort > 0) {
-                    System.out.println("\tUDP PORT : "+udpPort); 
-                    startUDPClient(address, udpPort, timeout, delay);
+                    if(!asCsv) {
+                        System.out.println("\tUDP PORT : "+udpPort);
+                    }
+
+                    startUDPClient(address, udpPort, timeout, delay, asCsv);
                 }
                 if(tcpPort > 0) {
-                    System.out.println("\tTCP PORT : "+tcpPort); 
-                    startTCPClient(address, tcpPort, timeout, delay);
+                    if(!asCsv) {
+                        System.out.println("\tTCP PORT : "+tcpPort);
+                    }
+                    startTCPClient(address, tcpPort, timeout, delay, asCsv);
                 }
             }
-            else if(cmd.hasOption("server")) {
+            else if(cmd.hasOption("server") && !cmd.hasOption("client")) {
                 System.out.println("Running server on localhost");
                 if(udpPort > 0) {
                     System.out.println("\tUDP PORT : "+udpPort); 
@@ -113,10 +119,15 @@ public class Program {
                 }
             }
             else {
-                close("client or server must be specified");
+                close("client OR server must be specified");
             }
 
-        } catch (ParseException e) {
+        } catch (UnrecognizedOptionException e) {
+            close("Invalid option: " + e.getOption());
+        } catch (MissingArgumentException e) {
+            close("Argument "+e.getOption().getArgName()+" missing for option " + e.getOption().getLongOpt());
+        }
+        catch (ParseException e) {
             e.printStackTrace();
         }
 
@@ -151,7 +162,8 @@ public class Program {
 
 
     private static void close(String message) {
-        System.out.println(message);
+        System.err.println(message);
+        System.err.println("Run with --help for more details");
         System.exit(1);
     }
 
@@ -167,14 +179,14 @@ public class Program {
         tcpServerThread.start();
         
     }
-    private static void startUDPClient(String address, int udpPort, int timeout, long delay) {
-        Client udpClient = new UDPClient(address, udpPort, timeout, delay);
+    private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv) {
+        Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv);
         Thread udpClientThread = new Thread(udpClient);
         udpClientThread.start();
     }
 
-    private static void startTCPClient(String address, int tcpPort, int timeout, long delay) {
-        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay);
+    private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean asCsv) {
+        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, asCsv);
         Thread tcpClientThread = new Thread(tcpClient);
         tcpClientThread.start();
     }

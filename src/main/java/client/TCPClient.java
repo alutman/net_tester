@@ -11,12 +11,12 @@ import java.net.*;
  */
 public class TCPClient extends Client{
 
-    public TCPClient(String address, int port, int timeout, Long delay) {
-        super(address, port, timeout, delay);
+    public TCPClient(String address, int port, int timeout, Long delay, boolean outputCsv) {
+        super(address, port, timeout, delay, outputCsv);
     }
 
     @Override
-    protected long timeResponse() {
+    protected PingResult timeResponse() {
 
         /* SET UP CONNECTION */
         Socket clientSocket = null;
@@ -25,8 +25,7 @@ public class TCPClient extends Client{
             clientSocket = new Socket(this.getAddress(), this.getPort());
             clientSocket.setSoTimeout(this.getTimeout());
         } catch (IOException e) {
-            printerr(e.getClass().getCanonicalName() + ":" + e.getMessage());
-            return ErrorType.SOCKET_ERROR;
+            return new PingResult(ErrorType.SOCKET_ERROR, e.getClass().getCanonicalName() + ":" + e.getMessage());
         }
 
 
@@ -39,8 +38,7 @@ public class TCPClient extends Client{
             outToServer.writeBytes(request + "\n");
             //TODO Check timeout works
         } catch (IOException e) {
-            printerr("Send failed: " + e.getMessage());
-            return ErrorType.SEND_ERROR;
+            return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
 
         /* RECEIVE RESPONSE */
@@ -51,18 +49,15 @@ public class TCPClient extends Client{
             response = inFromServer.readLine();
             endTime = System.currentTimeMillis();
         } catch(SocketTimeoutException ste) {
-            printerr("Receive timeout reached: " + ste.getMessage());
-            return ErrorType.TIMEOUT;
+            return new PingResult(ErrorType.TIMEOUT, "Receive timeout reached: " + ste.getMessage());
         } catch (IOException e) {
-            printerr("Receive failed: " + e.getMessage());
-            return ErrorType.RECEIVE_ERROR;
+            return new PingResult(ErrorType.RECEIVE_ERROR, "Receive failed: " + e.getMessage());
         }
 
         /* HANDLE RESULTS */
         Long delay = endTime - startTime;
         if(!response.equals(request.toUpperCase())) {
-            printerr("Response ("+response+") does not match request ("+request.toUpperCase()+")");
-            return ErrorType.RESPONSE_MISMATCH;
+            return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 
         //TODO Determine if the connection should be made once and constantly used or constantly created
@@ -70,7 +65,7 @@ public class TCPClient extends Client{
             clientSocket.close();
         } catch(IOException ioe) {}
 
-        return delay;
+        return new PingResult(delay);
     }
 
     @Override
