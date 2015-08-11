@@ -26,12 +26,12 @@ public class Program {
                 .withDescription("connect with UDP using PORT")
                 .hasArg()
                 .withArgName("PORT")
-                .create("t"));
+                .create("u"));
         options.addOption(OptionBuilder.withLongOpt("tcp")
                 .withDescription("connect with TCP using PORT")
                 .hasArg()
                 .withArgName("PORT")
-                .create("u"));
+                .create("t"));
         options.addOption(OptionBuilder.withLongOpt("client")
                 .withDescription("run in client mode")
                 .hasArg()
