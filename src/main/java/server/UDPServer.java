@@ -1,5 +1,7 @@
 package server;
 
+import client.Client;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,57 +11,51 @@ import java.net.SocketException;
 /**
  * Created by alutman on 10-Aug-15.
  */
-public class UDPServer implements Runnable {
+public class UDPServer extends Server {
 
-    private boolean isRunning = true;
-    private int port = 0;
+    private DatagramSocket serverSocket;
 
     public UDPServer(int port) {
-        this.port = port;
+        super(port);
     }
 
-    public synchronized boolean isRunning() {
-        return isRunning;
-    }
-    public synchronized void stop() {
-        isRunning = false;
+    @Override
+    protected void processRequest() {
+
+        /* RECEIVE INCOMING REQUESTS */
+        byte[] receiveData = new byte[Client.MESSAGE_SIZE];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            //TODO Replace with serverSocket.bind()? may be pointless
+            serverSocket.receive(receivePacket);
+        }
+        catch(IOException e) {
+            System.err.println("[UDP Server] Receive failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+        }
+
+        /* WRITE RESPONSE */
+        String response = new String(receivePacket.getData()).toUpperCase();
+        InetAddress IPAddress = receivePacket.getAddress();
+        int port = receivePacket.getPort();
+        byte[] sendData = response.getBytes();
+        DatagramPacket sendPacket =
+                new DatagramPacket(sendData, sendData.length, IPAddress, port);
+        try {
+            serverSocket.send(sendPacket);
+        } catch (IOException e) {
+            System.err.println("[UDP Server] Send failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+        }
     }
 
 
     @Override
-    public void run() {
-        DatagramSocket serverSocket = null;
-        byte[] receiveData = new byte[1024];
-        byte[] sendData = new byte[1024];
+    protected void startListening() {
+        this.serverSocket = null;
         try {
-            serverSocket = new DatagramSocket(port);
+            serverSocket = new DatagramSocket(this.getPort());
         }
         catch (SocketException se){
             throw new RuntimeException(se);
-        }
-        while(isRunning())
-        {
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            try {
-                serverSocket.receive(receivePacket);
-            }
-            catch(IOException ioe) {
-                System.err.println("Receive failed: "+ioe.getMessage());
-            }
-
-            String sentence = new String( receivePacket.getData());
-//            System.out.println("RECEIVED: " + sentence);
-            InetAddress IPAddress = receivePacket.getAddress();
-            int port = receivePacket.getPort();
-            String capitalizedSentence = sentence.toUpperCase();
-            sendData = capitalizedSentence.getBytes();
-            DatagramPacket sendPacket =
-                    new DatagramPacket(sendData, sendData.length, IPAddress, port);
-            try {
-                serverSocket.send(sendPacket);
-            } catch (IOException ioe) {
-                System.err.println("Send failed: "+ioe.getMessage());
-            }
         }
     }
 }
