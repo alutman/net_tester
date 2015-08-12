@@ -9,8 +9,8 @@ import java.net.*;
 public class UDPClient extends Client {
 
 
-    public UDPClient(String address, int port, int timeout, Long delay, boolean outputCsv) {
-        super(address, port, timeout, delay, outputCsv);
+    public UDPClient(String address, int port, int timeout, boolean outputCsv) {
+        super(address, port, timeout, outputCsv);
     }
 
     @Override

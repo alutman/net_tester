@@ -1,7 +1,5 @@
 package client;
 
-import shared.StoppableRunner;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -10,12 +8,11 @@ import java.util.Date;
 /**
  * Created by alutman on 10-Aug-15.
  */
-public abstract class Client extends StoppableRunner {
+public abstract class Client implements Runnable {
 
     private int port;
     private String address;
     private int timeout;
-    private Long delay;
     private boolean outputCsv;
 
     private static final int MESSAGE_NUMBER_LENGTH = 4;
@@ -25,11 +22,10 @@ public abstract class Client extends StoppableRunner {
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String CSV_SUCCESS_STRING = "SUCCESS";
 
-    public Client(String address, int port, int timeout, Long delay, boolean outputCsv) {
+    public Client(String address, int port, int timeout, boolean outputCsv) {
         this.address = address;
         this.port = port;
         this.timeout = timeout;
-        this.delay = delay;
         this.outputCsv = outputCsv;
     }
 
@@ -45,9 +41,6 @@ public abstract class Client extends StoppableRunner {
         return timeout;
     }
 
-    public Long getDelay() {
-        return delay;
-    }
 
     /* Produce a message to send from the name, time and various message lengths. Length should always equal MESSAGE_SIZE */
     protected String generateMessage() {
@@ -92,28 +85,22 @@ public abstract class Client extends StoppableRunner {
 
     @Override
     public void run() {
-        while (isRunning()) {
-            PingResult result = sendRequest();
-            if(result.hasError) {
-                if(outputCsv) {
-                    System.err.println(csvOutput(result));
-                }
-                else {
-                    System.err.println(formatOutput(result));
-                }
-            } else {
-                if(outputCsv) {
-                    System.out.println(csvOutput(result));
-                }
-                else {
-                    System.out.println(formatOutput(result));
-                }
+        PingResult result = sendRequest();
+        if(result.hasError) {
+            if(outputCsv) {
+                System.err.println(csvOutput(result));
             }
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException ie) {
-                //Nada
+            else {
+                System.err.println(formatOutput(result));
+            }
+        } else {
+            if(outputCsv) {
+                System.out.println(csvOutput(result));
+            }
+            else {
+                System.out.println(formatOutput(result));
             }
         }
+
     }
 }
