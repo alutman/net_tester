@@ -22,6 +22,8 @@ public abstract class Client extends StoppableRunner {
     private static final int MESSAGE_NAME_LENGTH = 4;
     private static final char MESSAGE_NAME_PADDING_CHAR = 'm';
     public static final int MESSAGE_SIZE = MESSAGE_NUMBER_LENGTH + MESSAGE_NAME_LENGTH; /* max size from generate message */
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private static final String CSV_SUCCESS_STRING = "SUCCESS";
 
     public Client(String address, int port, int timeout, Long delay, boolean outputCsv) {
         this.address = address;
@@ -64,7 +66,7 @@ public abstract class Client extends StoppableRunner {
     protected abstract PingResult sendRequest();
     protected abstract String getName();
     private String getDate() {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        DateFormat df = new SimpleDateFormat(DATE_FORMAT);
         Date now = new Date();
         return df.format(now);
     }
@@ -73,7 +75,7 @@ public abstract class Client extends StoppableRunner {
             return getDate()+","+getName()+","+result.errorType.toString()+","+result.errorMessage;
         }
         else {
-            return getDate()+","+getName()+",SUCCESS,"+result.timeTaken;
+            return getDate()+","+getName()+","+CSV_SUCCESS_STRING+","+result.timeTaken;
         }
 
     }
