@@ -1,7 +1,5 @@
 package server;
 
-import client.Client;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -48,7 +46,8 @@ public class TCPServer extends Server {
 		try {
 			serverSocket = new ServerSocket(this.getPort());
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			System.err.println("[TCP Server] Setup failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+            this.terminate();
 		}
 	}
 

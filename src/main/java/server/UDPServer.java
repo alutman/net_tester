@@ -53,8 +53,9 @@ public class UDPServer extends Server {
         try {
             serverSocket = new DatagramSocket(this.getPort());
         }
-        catch (SocketException se){
-            throw new RuntimeException(se);
+        catch (SocketException e){
+            System.err.println("[UDP Server] Setup failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+            this.terminate();
         }
     }
 }

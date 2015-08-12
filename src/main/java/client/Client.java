@@ -1,6 +1,6 @@
 package client;
 
-import shared.StoppableRunner;
+import shared.RepeatingRunner;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -10,7 +10,7 @@ import java.util.Date;
 /**
  * Created by alutman on 10-Aug-15.
  */
-public abstract class Client extends StoppableRunner {
+public abstract class Client extends RepeatingRunner {
 
     private int port;
     private String address;
@@ -26,6 +26,7 @@ public abstract class Client extends StoppableRunner {
     private static final String CSV_SUCCESS_STRING = "SUCCESS";
 
     public Client(String address, int port, int timeout, Long delay, boolean outputCsv) {
+        super(delay);
         this.address = address;
         this.port = port;
         this.timeout = timeout;
@@ -90,30 +91,25 @@ public abstract class Client extends StoppableRunner {
 
     }
 
-    @Override
-    public void run() {
-        while (isRunning()) {
-            PingResult result = sendRequest();
-            if(result.hasError) {
-                if(outputCsv) {
-                    System.err.println(csvOutput(result));
-                }
-                else {
-                    System.err.println(formatOutput(result));
-                }
-            } else {
-                if(outputCsv) {
-                    System.out.println(csvOutput(result));
-                }
-                else {
-                    System.out.println(formatOutput(result));
-                }
+    /* Nothing needed in init for Client */
+    public void init() {}
+    public void repeat() {
+        PingResult result = sendRequest();
+        if(result.hasError) {
+            if(outputCsv) {
+                System.err.println(csvOutput(result));
             }
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException ie) {
-                //Nada
+            else {
+                System.err.println(formatOutput(result));
+            }
+        } else {
+            if(outputCsv) {
+                System.out.println(csvOutput(result));
+            }
+            else {
+                System.out.println(formatOutput(result));
             }
         }
     }
+
 }
