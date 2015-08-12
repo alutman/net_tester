@@ -1,9 +1,11 @@
 package server;
 
+import shared.StoppableRunner;
+
 /**
  * Created by alutman on 10-Aug-15.
  */
-public abstract class Server implements Runnable {
+public abstract class Server extends StoppableRunner {
 
     private int port = 0;
 
@@ -14,24 +16,16 @@ public abstract class Server implements Runnable {
     public int getPort() {
         return port;
     }
-    private boolean running = true;
 
-    public synchronized boolean isRunning() {
-        return running;
-    }
-    public synchronized void terminate() {
-        running = false;
-    }
+     protected abstract void listenForRequestAndProcess();
+     protected abstract void setupServer();
 
-    protected abstract void listenForRequestAndProcess();
-    protected abstract void setupServer();
-
-    @Override
-    public void run() {
-        setupServer();
-        while (isRunning()) {
-            listenForRequestAndProcess();
-        }
-    }
+     @Override
+     public void run() {
+         setupServer();
+         while(isRunning()) {
+             listenForRequestAndProcess();
+         }
+     }
 
 }

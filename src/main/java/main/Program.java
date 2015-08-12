@@ -10,18 +10,14 @@ import server.Server;
 import server.TCPServer;
 import server.UDPServer;
 
-import java.util.concurrent.*;
-
 
 /**
  * Created by alutman on 10-Aug-15.
  */
 public class Program {
 
-    private static final int DEFAULT_TIMEOUT_MS = 10000;
-    private static final long DEFAULT_DELAY_S = 1l;
-
-    private static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
+    private static final int DEFAULT_TIMEOUT = 10000;
+    private static final long DEFAULT_DELAY = 1000l;
 
     public static void main(String[] args) {
         Options options = new Options();
@@ -143,24 +139,24 @@ public class Program {
                 return Math.max(Integer.parseInt(cmd.getOptionValue("timeout")), 1);
             }
             catch(NumberFormatException nfe) {
-                System.out.println("Invalid timeout: "+cmd.getOptionValue("timeout")+". Using default "+DEFAULT_TIMEOUT_MS);
+                System.out.println("Invalid timeout: "+cmd.getOptionValue("timeout")+". Using default "+DEFAULT_TIMEOUT);
             }
 
         }
-        return DEFAULT_TIMEOUT_MS;
+        return DEFAULT_TIMEOUT;
     }
 
     private static Long getDelay(CommandLine cmd)  {
         if(cmd.hasOption("delay")) {
             try {
-                return Math.max(Long.parseLong(cmd.getOptionValue("delay")), 1L);
+                return Math.max(Long.parseLong(cmd.getOptionValue("delay")) * 1000L, 1000L);
             }
             catch(NumberFormatException nfe) {
-                System.out.println("Invalid delay: "+cmd.getOptionValue("delay")+". Using default "+DEFAULT_DELAY_S);
+                System.out.println("Invalid delay: "+cmd.getOptionValue("delay")+". Using default "+DEFAULT_DELAY/1000);
             }
 
         }
-        return DEFAULT_DELAY_S;
+        return DEFAULT_DELAY;
     }
 
 
@@ -172,20 +168,24 @@ public class Program {
 
     private static void startUDPServer(int udpPort) {
         Server udpServer = new UDPServer(udpPort);
-        executorService.execute(udpServer);
+        Thread udpServerThread = new Thread(udpServer);
+        udpServerThread.start();
     }
     private static void startTCPServer(int tcpPort) {
         Server tcpServer = new TCPServer(tcpPort);
-        executorService.execute(tcpServer);
+        Thread tcpServerThread = new Thread(tcpServer);
+        tcpServerThread.start();
     }
     private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv) {
-        Client udpClient = new UDPClient(address, udpPort, timeout, asCsv);
-        executorService.scheduleAtFixedRate(udpClient, 0, delay, TimeUnit.SECONDS);
+        Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv);
+        Thread udpClientThread = new Thread(udpClient);
+        udpClientThread.start();
     }
 
     private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean asCsv) {
-        Client tcpClient = new TCPClient(address, tcpPort, timeout, asCsv);
-        executorService.scheduleAtFixedRate(tcpClient, 0, delay, TimeUnit.SECONDS);
+        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, asCsv);
+        Thread tcpClientThread = new Thread(tcpClient);
+        tcpClientThread.start();
     }
 
 }
