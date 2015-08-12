@@ -26,6 +26,10 @@ public abstract class RepeatingRunner implements Runnable {
         }
     }
 
+    public long getDelay() {
+        return delay;
+    }
+
     /* A more graceful method to shut down the runner */
     public void finish() {
         stop = true;

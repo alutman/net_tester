@@ -54,6 +54,9 @@ public class Program {
         options.addOption(OptionBuilder.withLongOpt("csv")
                 .withDescription("output in csv format")
                 .create());
+        options.addOption(OptionBuilder.withLongOpt("no-match")
+                .withDescription("skip matching the result from server with the request")
+                .create());
         options.addOption("s", "server", false, "run in server mode");
 
         CommandLineParser parser = new BasicParser();
@@ -93,6 +96,7 @@ public class Program {
                 Long delay = getDelay(cmd);
                 String address = cmd.getOptionValue("client");
                 boolean asCsv = cmd.hasOption("csv");
+                boolean matchResult = !cmd.hasOption("no-match");
                 if(!asCsv) {
                     System.out.println("Running client to " + address);
                 }
@@ -101,13 +105,13 @@ public class Program {
                         System.out.println("\tUDP PORT : "+udpPort);
                     }
 
-                    startUDPClient(address, udpPort, timeout, delay, asCsv);
+                    startUDPClient(address, udpPort, timeout, delay, asCsv, matchResult);
                 }
                 if(tcpPort > 0) {
                     if(!asCsv) {
                         System.out.println("\tTCP PORT : "+tcpPort);
                     }
-                    startTCPClient(address, tcpPort, timeout, delay, asCsv);
+                    startTCPClient(address, tcpPort, timeout, delay, asCsv, matchResult);
                 }
             }
             else if(cmd.hasOption("server") && !cmd.hasOption("client")) {
@@ -180,14 +184,14 @@ public class Program {
         Thread tcpServerThread = new Thread(tcpServer);
         tcpServerThread.start();
     }
-    private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv) {
-        Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv);
+    private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv, boolean matchResult) {
+        Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv, matchResult);
         Thread udpClientThread = new Thread(udpClient);
         udpClientThread.start();
     }
 
-    private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean asCsv) {
-        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, asCsv);
+    private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean asCsv, boolean matchResult) {
+        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, asCsv, matchResult);
         Thread tcpClientThread = new Thread(tcpClient);
         tcpClientThread.start();
     }

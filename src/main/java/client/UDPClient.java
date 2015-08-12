@@ -9,8 +9,8 @@ import java.net.*;
 public class UDPClient extends Client {
 
 
-    public UDPClient(String address, int port, int timeout, Long delay, boolean outputCsv) {
-        super(address, port, timeout, delay, outputCsv);
+    public UDPClient(String address, int port, int timeout, Long delay, boolean outputCsv, boolean matchResult) {
+        super(address, port, timeout, delay, outputCsv, matchResult);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class UDPClient extends Client {
 
         /* HANDLE RESULTS */
         Long delay = endTime-startTime;
-        if(!response.equals(request.toUpperCase())) {
+        if(isMatchResult() && !response.equals(request.toUpperCase())) {
             return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 
