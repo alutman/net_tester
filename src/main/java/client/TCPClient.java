@@ -21,8 +21,10 @@ public class TCPClient extends Client{
         /* SET UP CONNECTION */
         Socket clientSocket = new Socket();
         try {
-            clientSocket.connect(new InetSocketAddress(this.getAddress(), this.getPort()));
+            clientSocket.connect(new InetSocketAddress(this.getAddress(), this.getPort()), this.getTimeout());
             clientSocket.setSoTimeout(this.getTimeout());
+        } catch(SocketTimeoutException ste) {
+            return new PingResult(ErrorType.TIMEOUT, "Connect timeout reached: " + ste.getMessage());
         } catch (IOException e) {
             return new PingResult(ErrorType.SOCKET_ERROR, e.getClass().getCanonicalName() + ":" + e.getMessage());
         }
