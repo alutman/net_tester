@@ -57,7 +57,7 @@ public class TCPClient extends Client{
         /* HANDLE RESULTS */
         Long delay = endTime - startTime;
         if(isMatchResult() && !response.equals(request)) {
-            return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
+            return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request+")");
         }
 
         try {

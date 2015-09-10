@@ -47,7 +47,7 @@ public class UDPClient extends Client {
         /* RECEIVE RESPONSE */
         String response;
         Long endTime;
-        byte[] receiveData = new byte[request.length()];
+        byte[] receiveData = new byte[Client.MESSAGE_SIZE];
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
         try {
             clientSocket.setSoTimeout(this.getTimeout());

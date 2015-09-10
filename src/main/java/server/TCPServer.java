@@ -23,10 +23,10 @@ public class TCPServer extends Server {
 			DataInputStream inFromClient = new DataInputStream(connectionSocket.getInputStream());
 
 			/* READ NEXT REQUEST */
-			String response = "default";
+			String response = "X";
 			try {
 				byte[] clientRequest = new byte[Client.MESSAGE_SIZE];
-				inFromClient.readFully(clientRequest);
+				inFromClient.read(clientRequest);
 				response = new String(clientRequest);
 			}
 			catch(EOFException e) {
