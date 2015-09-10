@@ -1,9 +1,6 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 
 /**
@@ -36,7 +33,7 @@ public class TCPClient extends Client{
         try {
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             startTime = System.currentTimeMillis();
-            outToServer.writeBytes(request + "\n");
+            outToServer.writeBytes(request);
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -45,8 +42,12 @@ public class TCPClient extends Client{
         Long endTime;
         String response;
         try {
-            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            response = inFromServer.readLine();
+            DataInputStream inFromServer = new DataInputStream(clientSocket.getInputStream());
+
+            byte[] serverResponse = new byte[Client.MESSAGE_SIZE];
+            inFromServer.readFully(serverResponse);
+            response = new String(serverResponse);
+
             endTime = System.currentTimeMillis();
         } catch(SocketTimeoutException ste) {
             return new PingResult(ErrorType.TIMEOUT, "Receive timeout reached: " + ste.getMessage());
@@ -55,7 +56,7 @@ public class TCPClient extends Client{
         }
         /* HANDLE RESULTS */
         Long delay = endTime - startTime;
-        if(isMatchResult() && !response.equals(request.toUpperCase())) {
+        if(isMatchResult() && !response.equals(request)) {
             return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 

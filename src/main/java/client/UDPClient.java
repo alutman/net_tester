@@ -62,7 +62,7 @@ public class UDPClient extends Client {
 
         /* HANDLE RESULTS */
         Long delay = endTime-startTime;
-        if(isMatchResult() && !response.equals(request.toUpperCase())) {
+        if(isMatchResult() && !response.equals(request)) {
             return new PingResult(ErrorType.RESPONSE_MISMATCH,"Response ("+response+") does not match request ("+request.toUpperCase()+")");
         }
 

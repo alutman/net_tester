@@ -16,7 +16,7 @@ public class UDPServer extends Server {
     private DatagramSocket serverSocket;
 
     public UDPServer(int port) {
-        super(port);
+        super(port, "UDP");
     }
 
     @Override
@@ -29,11 +29,11 @@ public class UDPServer extends Server {
             serverSocket.receive(receivePacket);
         }
         catch(IOException e) {
-            System.err.println("[UDP Server] Receive failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+            logException(e, "Receive failed");
         }
 
         /* WRITE RESPONSE */
-        String response = new String(receivePacket.getData()).toUpperCase();
+        String response = new String(receivePacket.getData());
         InetAddress IPAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
         byte[] sendData = response.getBytes();
@@ -42,7 +42,7 @@ public class UDPServer extends Server {
         try {
             serverSocket.send(sendPacket);
         } catch (IOException e) {
-            System.err.println("[UDP Server] Send failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+            logException(e, "Send failed");
         }
     }
 
@@ -53,8 +53,8 @@ public class UDPServer extends Server {
         try {
             serverSocket = new DatagramSocket(this.getPort());
         }
-        catch (SocketException e){
-            System.err.println("[UDP Server] Setup failed. "+e.getClass().getCanonicalName()+":"+e.getMessage());
+        catch (Exception e){
+            logException(e, "Setup failed");
             this.terminate();
         }
     }
