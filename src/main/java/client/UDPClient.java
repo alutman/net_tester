@@ -2,6 +2,7 @@ package client;
 
 import java.io.IOException;
 import java.net.*;
+import shared.OutputFormat;
 
 /**
  * Created by alutman on 10-Aug-15.
@@ -9,17 +10,17 @@ import java.net.*;
 public class UDPClient extends Client {
 
 
-    public UDPClient(String address, int port, int timeout, Long delay, boolean outputCsv, boolean matchResult) {
-        super(address, port, timeout, delay, outputCsv, matchResult);
+    public UDPClient(String address, int port, int timeout, Long delay, boolean matchResult, OutputFormat outputFormat) {
+        super(address, port, timeout, delay, matchResult, outputFormat);
     }
 
     @Override
     protected PingResult sendRequest() {
 
         /* GET HOST */
-        InetAddress IPAddress = null;
+        InetAddress ipAddress = null;
         try {
-            IPAddress = InetAddress.getByName(this.getAddress());
+            ipAddress = InetAddress.getByName(this.getAddress());
         } catch (UnknownHostException e) {
             return new PingResult(ErrorType.UNKNOWN_HOST, "Unknown host: "+e.getMessage());
         }
@@ -36,10 +37,11 @@ public class UDPClient extends Client {
         /* SEND PACKET */
         String request = generateMessage();
         byte[] sendData = request.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, this.getPort());
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipAddress, this.getPort());
         Long startTime = System.currentTimeMillis();
         try {
             clientSocket.send(sendPacket);
+            logInfo("Sent byte ("+request+") to "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -52,8 +54,11 @@ public class UDPClient extends Client {
         try {
             clientSocket.setSoTimeout(this.getTimeout());
             clientSocket.receive(receivePacket);
+
             endTime  = System.currentTimeMillis();
             response = new String(receivePacket.getData());
+            logInfo("Byte ("+response+") received from "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
+
         } catch(SocketTimeoutException ste) {
             return new PingResult(ErrorType.TIMEOUT, "Receive timeout reached: " + ste.getMessage());
         } catch (IOException ioe) {

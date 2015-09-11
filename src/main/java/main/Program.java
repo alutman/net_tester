@@ -9,6 +9,7 @@ import org.apache.commons.cli.*;
 import server.Server;
 import server.TCPServer;
 import server.UDPServer;
+import shared.OutputFormat;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,18 +46,21 @@ public class Program {
                 .withDescription("delay between requests (Default 1s)")
                 .hasArg()
                 .withArgName("SECONDS")
-                .create());
+                .create("d"));
         options.addOption(OptionBuilder.withLongOpt("timeout")
                 .withDescription("timeout for requests (Default 10000ms)")
                 .hasArg()
                 .withArgName("MILLISECONDS")
-                .create());
+                .create("o"));
         options.addOption(OptionBuilder.withLongOpt("csv")
                 .withDescription("output in csv format")
-                .create());
+                .create("l"));
+        options.addOption(OptionBuilder.withLongOpt("verbose")
+                .withDescription("output extra details when connecting")
+                .create("v"));
         options.addOption(OptionBuilder.withLongOpt("no-match")
                 .withDescription("skip matching the result from server with the request")
-                .create());
+                .create("n"));
         options.addOption("s", "server", false, "run in server mode");
 
         CommandLineParser parser = new BasicParser();
@@ -68,7 +72,7 @@ public class Program {
                 hf.printHelp("net_tester [OPTIONS]",
                         "Measures ping between two machines over UDP and/or TCP",
                         options,
-                        "Server mode only pays attention to --udp and --tcp options");
+                        "Server mode only pays attention to --udp, --tcp and --verbose options");
                 System.exit(0);
             }
 
@@ -91,38 +95,48 @@ public class Program {
             }
 
             /* GET MODE */
+            OutputFormat outputFormat = OutputFormat.NORMAL;
+            if(cmd.hasOption("verbose")) {
+                outputFormat = OutputFormat.VERBOSE;
+            }
+
             if(cmd.hasOption("client") && !cmd.hasOption("server")) {
                 int timeout = getTimeout(cmd);
                 Long delay = getDelay(cmd);
                 String address = cmd.getOptionValue("client");
-                boolean asCsv = cmd.hasOption("csv");
+                if(cmd.hasOption("csv")) {
+                    if(cmd.hasOption("verbose")) {
+                        close("Only one of --csv and --verbose may be specified");
+                    }
+                    outputFormat = OutputFormat.CSV;
+                }
                 boolean matchResult = !cmd.hasOption("no-match");
-                if(!asCsv) {
+                if(!cmd.hasOption("csv")) {
                     System.out.println("Running client to " + address);
                 }
                 if(udpPort > 0) {
-                    if(!asCsv) {
+                    if(!cmd.hasOption("csv")) {
                         System.out.println("\tUDP PORT : "+udpPort);
                     }
 
-                    startUDPClient(address, udpPort, timeout, delay, asCsv, matchResult);
+                    startUDPClient(address, udpPort, timeout, delay, matchResult, outputFormat);
                 }
                 if(tcpPort > 0) {
-                    if(!asCsv) {
+                    if(!cmd.hasOption("csv")) {
                         System.out.println("\tTCP PORT : "+tcpPort);
                     }
-                    startTCPClient(address, tcpPort, timeout, delay, asCsv, matchResult);
+                    startTCPClient(address, tcpPort, timeout, delay, matchResult, outputFormat);
                 }
             }
             else if(cmd.hasOption("server") && !cmd.hasOption("client")) {
                 System.out.println("Running server on localhost");
                 if(udpPort > 0) {
-                    System.out.println("\tUDP PORT : "+udpPort); 
-                    startUDPServer(udpPort);
+                    System.out.println("\tUDP PORT : "+udpPort);
+                    startUDPServer(udpPort, outputFormat);
                 }
                 if(tcpPort > 0) {
                     System.out.println("\tTCP PORT : "+tcpPort);
-                    startTCPServer(tcpPort);
+                    startTCPServer(tcpPort, outputFormat);
                 }
             }
             else {
@@ -174,24 +188,24 @@ public class Program {
         System.exit(1);
     }
 
-    private static void startUDPServer(int udpPort) {
-        Server udpServer = new UDPServer(udpPort);
+    private static void startUDPServer(int udpPort, OutputFormat outputFormat) {
+        Server udpServer = new UDPServer(udpPort, outputFormat);
         Thread udpServerThread = new Thread(udpServer);
         udpServerThread.start();
     }
-    private static void startTCPServer(int tcpPort) {
-        Server tcpServer = new TCPServer(tcpPort);
+    private static void startTCPServer(int tcpPort, OutputFormat outputFormat) {
+        Server tcpServer = new TCPServer(tcpPort, outputFormat);
         Thread tcpServerThread = new Thread(tcpServer);
         tcpServerThread.start();
     }
-    private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean asCsv, boolean matchResult) {
-        Client udpClient = new UDPClient(address, udpPort, timeout, delay, asCsv, matchResult);
+    private static void startUDPClient(String address, int udpPort, int timeout, long delay, boolean matchResult, OutputFormat outputFormat) {
+        Client udpClient = new UDPClient(address, udpPort, timeout, delay, matchResult, outputFormat);
         Thread udpClientThread = new Thread(udpClient);
         udpClientThread.start();
     }
 
-    private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean asCsv, boolean matchResult) {
-        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, asCsv, matchResult);
+    private static void startTCPClient(String address, int tcpPort, int timeout, long delay, boolean matchResult, OutputFormat outputFormat) {
+        Client tcpClient = new TCPClient(address, tcpPort, timeout, delay, matchResult, outputFormat);
         Thread tcpClientThread = new Thread(tcpClient);
         tcpClientThread.start();
     }

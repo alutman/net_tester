@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import shared.OutputFormat;
 
 /**
  * Created by alutman on 10-Aug-15.
@@ -15,8 +16,8 @@ public class UDPServer extends Server {
 
     private DatagramSocket serverSocket;
 
-    public UDPServer(int port) {
-        super(port, "UDP");
+    public UDPServer(int port, OutputFormat outputFormat) {
+        super(port, "UDP", outputFormat);
     }
 
     @Override
@@ -34,16 +35,21 @@ public class UDPServer extends Server {
 
         /* WRITE RESPONSE */
         String response = new String(receivePacket.getData());
-        InetAddress IPAddress = receivePacket.getAddress();
+        InetAddress ipAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
+
+        logInfo("Byte ("+response+") received from "+ipAddress.toString()+":"+port);
+
         byte[] sendData = response.getBytes();
         DatagramPacket sendPacket =
-                new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                new DatagramPacket(sendData, sendData.length, ipAddress, port);
         try {
             serverSocket.send(sendPacket);
+            logInfo("Sent byte ("+response+") to "+ipAddress.toString()+":"+port);
         } catch (IOException e) {
             logException(e, "Send failed");
         }
+
     }
 
 

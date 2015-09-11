@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.lang.Math;
+import shared.OutputFormat;
 
 /**
  * Created by alutman on 10-Aug-15.
@@ -16,20 +17,20 @@ public abstract class Client extends RepeatingRunner {
     private int port;
     private String address;
     private int timeout;
-    private boolean outputCsv;
     private boolean matchResult;
+    private OutputFormat outputFormat = OutputFormat.NORMAL;
 
     public static final int MESSAGE_SIZE = 1; /* max size from generate message */
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String CSV_SUCCESS_STRING = "SUCCESS";
 
-    public Client(String address, int port, int timeout, Long delay, boolean outputCsv, boolean matchResult) {
+    public Client(String address, int port, int timeout, Long delay, boolean matchResult, OutputFormat outputFormat) {
         super(delay);
         this.address = address;
         this.port = port;
         this.timeout = timeout;
-        this.outputCsv = outputCsv;
         this.matchResult = matchResult;
+        this.outputFormat = outputFormat;
     }
 
     public int getPort() {
@@ -47,11 +48,17 @@ public abstract class Client extends RepeatingRunner {
     public boolean isMatchResult() {
         return matchResult;
     }
-    
+
     protected String generateMessage() {
         String rand = Math.random() + "";
         rand = rand.substring(rand.length()-(MESSAGE_SIZE+1), rand.length()-1);
         return rand;
+    }
+
+    protected void logInfo(String message) {
+        if(outputFormat.equals(OutputFormat.VERBOSE)) {
+            System.out.println("["+getName()+"] "+message);
+        }
     }
 
     protected abstract PingResult sendRequest();
@@ -86,14 +93,14 @@ public abstract class Client extends RepeatingRunner {
     public void repeat() {
         PingResult result = sendRequest();
         if(result.hasError) {
-            if(outputCsv) {
+            if(outputFormat.equals(OutputFormat.CSV)) {
                 System.err.println(csvOutput(result));
             }
             else {
                 System.err.println(formatOutput(result));
             }
         } else {
-            if(outputCsv) {
+            if(outputFormat.equals(OutputFormat.CSV)) {
                 System.out.println(csvOutput(result));
             }
             else {

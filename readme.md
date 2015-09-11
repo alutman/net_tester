@@ -14,17 +14,23 @@ A full list of commands can be found by running
 
         java -jar net_tester.jar -s --udp 9998 --tcp 9997
         java -jar net_tester.jar -s -u 9998
-        java -jar net_tester.jar -s --tcp 9997
+        java -jar net_tester.jar -s --tcp 9997 --verbose
 * Start the client on the other machine. Specify the protocols, ports and the server address. Examples
 
         java -jar net_tester -c my.server.com --udp 9998 --tcp 9997
         java -jar net_tester -c my.server.com -u 9998
-        java -jar net_tester -c my.server.com --tcp 9997
+        java -jar net_tester -c my.server.com --tcp 9997 --csv
 
-You can specify the following options as well when running in client mode
+#### All Options ####
+Server mode only pays attention to `--udp`, `--tcp` and `--verbose`. Only one of `--csv` and `--verbose` can be specified for client.
 
-* `--csv` : Output results in CSV format (`DATE,PROTOCOL,RESULT,MESSAGE/TIME`)
-* `--delay <SECONDS>` : Seconds of delay between each request to a port. The default and minimum is 1 second.
-* `--timeout <MILLISECONDS>` : Connection timeout threshold. Once this is reached, the connection is aborted and
-another connection is tried after the delay
-* `--no-match` : Don't check if the sent request matches the response
+ * `-c,--client <ADDRESS>` : Run in client mode
+ * `-d,--delay <SECONDS>` : Delay between requests (Default 1s)
+ * `-h,--help` : Display this help
+ * `-l,--csv` : Output in csv format
+ * `-n,--no-match` : Skip matching the result from server with the request
+ * `-o,--timeout <MILLISECONDS>` : Timeout for requests (Default 10000ms)
+ * `-s,--server` : Run in server mode
+ * `-t,--tcp <PORT>` : Connect with TCP using PORT
+ * `-u,--udp <PORT>` : Connect with UDP using PORT
+ * `-v,--verbose ` : Output extra details when connecting

@@ -2,14 +2,15 @@ package client;
 
 import java.io.*;
 import java.net.*;
+import shared.OutputFormat;
 
 /**
  * Created by alutman on 10-Aug-15.
  */
 public class TCPClient extends Client{
 
-    public TCPClient(String address, int port, int timeout, Long delay, boolean outputCsv, boolean matchResult) {
-        super(address, port, timeout, delay, outputCsv, matchResult);
+    public TCPClient(String address, int port, int timeout, Long delay, boolean matchResult, OutputFormat outputFormat) {
+        super(address, port, timeout, delay, matchResult, outputFormat);
     }
 
     @Override
@@ -20,6 +21,7 @@ public class TCPClient extends Client{
         try {
             clientSocket.connect(new InetSocketAddress(this.getAddress(), this.getPort()), this.getTimeout());
             clientSocket.setSoTimeout(this.getTimeout());
+            logInfo("Connected established to "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
         } catch(SocketTimeoutException ste) {
             return new PingResult(ErrorType.TIMEOUT, "Connect timeout reached: " + ste.getMessage());
         } catch (IOException e) {
@@ -34,6 +36,7 @@ public class TCPClient extends Client{
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             startTime = System.currentTimeMillis();
             outToServer.writeBytes(request);
+            logInfo("Sent byte ("+request+") to "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -47,6 +50,7 @@ public class TCPClient extends Client{
             byte[] serverResponse = new byte[Client.MESSAGE_SIZE];
             inFromServer.readFully(serverResponse);
             response = new String(serverResponse);
+            logInfo("Byte ("+response+") received from "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
 
             endTime = System.currentTimeMillis();
         } catch(SocketTimeoutException ste) {
