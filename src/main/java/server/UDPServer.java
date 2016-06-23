@@ -38,14 +38,14 @@ public class UDPServer extends Server {
         InetAddress ipAddress = receivePacket.getAddress();
         int port = receivePacket.getPort();
 
-        logInfo("Byte ("+response+") received from "+ipAddress.toString()+":"+port);
+        logInfo("Message ("+response+") received from "+ipAddress.toString()+":"+port);
 
         byte[] sendData = response.getBytes();
         DatagramPacket sendPacket =
                 new DatagramPacket(sendData, sendData.length, ipAddress, port);
         try {
             serverSocket.send(sendPacket);
-            logInfo("Sent byte ("+response+") to "+ipAddress.toString()+":"+port);
+            logInfo("Sent message ("+response+") to "+ipAddress.toString()+":"+port);
         } catch (IOException e) {
             logException(e, "Send failed");
         }

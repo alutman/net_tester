@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.lang.Math;
+import java.util.Random;
+
 import shared.OutputFormat;
 
 /**
@@ -49,10 +51,15 @@ public abstract class Client extends RepeatingRunner {
         return matchResult;
     }
 
+    private final String MESSAGE_POOL = "01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private final Random rand = new Random();
     protected String generateMessage() {
-        String rand = Math.random() + "";
-        rand = rand.substring(rand.length()-(MESSAGE_SIZE+1), rand.length()-1);
-        return rand;
+
+        StringBuilder sb = new StringBuilder(MESSAGE_SIZE);
+        for(int i = 0; i < MESSAGE_SIZE; i++) {
+            sb.append(MESSAGE_POOL.charAt(rand.nextInt(MESSAGE_POOL.length())));
+        }
+        return sb.toString();
     }
 
     protected void logInfo(String message) {

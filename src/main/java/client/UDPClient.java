@@ -41,7 +41,7 @@ public class UDPClient extends Client {
         Long startTime = System.currentTimeMillis();
         try {
             clientSocket.send(sendPacket);
-            logInfo("Sent byte ("+request+") to "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
+            logInfo("Sent message ("+request+") to "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -57,7 +57,7 @@ public class UDPClient extends Client {
 
             endTime  = System.currentTimeMillis();
             response = new String(receivePacket.getData());
-            logInfo("Byte ("+response+") received from "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
+            logInfo("Message ("+response+") received from "+ipAddress.toString()+":"+this.getPort()+" from port "+clientSocket.getLocalPort());
 
         } catch(SocketTimeoutException ste) {
             return new PingResult(ErrorType.TIMEOUT, "Receive timeout reached: " + ste.getMessage());

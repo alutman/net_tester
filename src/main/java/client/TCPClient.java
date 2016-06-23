@@ -35,8 +35,8 @@ public class TCPClient extends Client{
         try {
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             startTime = System.currentTimeMillis();
-            outToServer.writeBytes(request);
-            logInfo("Sent byte ("+request+") to "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
+            outToServer.writeBytes(request+"\n");
+            logInfo("Sent message ("+request+") to "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
         } catch (IOException e) {
             return new PingResult(ErrorType.SEND_ERROR, "Send failed: " + e.getMessage());
         }
@@ -45,12 +45,9 @@ public class TCPClient extends Client{
         Long endTime;
         String response;
         try {
-            DataInputStream inFromServer = new DataInputStream(clientSocket.getInputStream());
-
-            byte[] serverResponse = new byte[Client.MESSAGE_SIZE];
-            inFromServer.readFully(serverResponse);
-            response = new String(serverResponse);
-            logInfo("Byte ("+response+") received from "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
+            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            response = inFromServer.readLine();
+            logInfo("Message ("+response+") received from "+clientSocket.getRemoteSocketAddress().toString()+" from port "+clientSocket.getLocalPort());
 
             endTime = System.currentTimeMillis();
         } catch(SocketTimeoutException ste) {
